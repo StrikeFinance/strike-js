@@ -2,7 +2,7 @@
 
 A JavaScript SDK for Ethereum and the Strike Protocol. Wraps around [Ethers.js](https://github.com/ethers-io/ethers.js/). Works in the **web browser** and **Node.js**.
 
-[Strike.js Documentation](https://docs.strike.io/docs/strike-js)
+[Strike.js Documentation](https://docs.strike.org/strike.js)
 
 This SDK is in **open beta**, and is constantly under development. **USE AT YOUR OWN RISK**.
 

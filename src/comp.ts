@@ -137,13 +137,13 @@ export async function getStrikeAccrued(
     throw Error(errorPrefix + 'Argument `_address` must be a valid Ethereum address.');
   }
 
-  const lensAddress = address[net.name].CompoundLens;
+  const lensAddress = address[net.name].StrikeLens;
   const compAddress = address[net.name].STRK;
   const comptrollerAddress = address[net.name].Comptroller;
   const parameters = [ compAddress, comptrollerAddress, _address ];
   const trxOptions: CallOptions = {
     _compoundProvider: provider,
-    abi: abi.CompoundLens,
+    abi: abi.StrikeLens,
   };
 
   const result = await eth.read(lensAddress, 'getStrikeBalanceMetadataExt', parameters, trxOptions);
