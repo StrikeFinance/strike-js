@@ -1,6 +1,6 @@
 {
   "name": "@strike-finance/strike-js",
-  "version": "0.0.1",
+  "version": "1.0.0",
   "author": "Strike Labs, Inc.",
   "description": "A JavaScript SDK for Ethereum and the Strike Protocol.",
   "license": "BSD-3-Clause",
