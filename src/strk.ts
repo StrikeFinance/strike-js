@@ -51,20 +51,20 @@ function toChecksumAddress(_address) {
 }
 
 /**
- * Get the balance of STRIKE tokens held by an address.
+ * Get the balance of STRK tokens held by an address.
  *
- * @param {string} _address The address in which to find the STRIKE balance.
+ * @param {string} _address The address in which to find the STRK balance.
  * @param {Provider | string} [_provider] An Ethers.js provider or valid network
  *     name string.
  *
- * @returns {string} Returns a string of the numeric balance of STRIKE. The value
+ * @returns {string} Returns a string of the numeric balance of STRK. The value
  *     is scaled up by 18 decimal places.
  *
  * @example
  *
  * ```
  * (async function () {
- *   const bal = await Strike.strike.getStrikeBalance('0x2775b1c75658Be0F640272CCb8c72ac986009e38');
+ *   const bal = await Strike.strk.getStrikeBalance('0x2775b1c75658Be0F640272CCb8c72ac986009e38');
  *   console.log('Balance', bal);
  * })().catch(console.error);
  * ```
@@ -88,32 +88,32 @@ export async function getStrikeBalance(
     throw Error(errorPrefix + 'Argument `_address` must be a valid Ethereum address.');
   }
 
-  const compAddress = address[net.name].STRK;
+  const strkAddress = address[net.name].STRK;
   const parameters = [ _address ];
   const trxOptions: CallOptions = {
-    _compoundProvider: provider,
+    _strikeProvider: provider,
     abi: abi.STRK,
   };
 
-  const result = await eth.read(compAddress, 'balanceOf', parameters, trxOptions);
+  const result = await eth.read(strkAddress, 'balanceOf', parameters, trxOptions);
   return result.toString();
 }
 
 /**
- * Get the amount of STRIKE tokens accrued but not yet claimed by an address.
+ * Get the amount of STRK tokens accrued but not yet claimed by an address.
  *
- * @param {string} _address The address in which to find the STRIKE accrued.
+ * @param {string} _address The address in which to find the STRK accrued.
  * @param {Provider | string} [_provider] An Ethers.js provider or valid network
  *     name string.
  *
- * @returns {string} Returns a string of the numeric accruement of STRIKE. The
+ * @returns {string} Returns a string of the numeric accruement of STRK. The
  *     value is scaled up by 18 decimal places.
  *
  * @example
  *
  * ```
  * (async function () {
- *   const acc = await Strike.strike.getStrikeAccrued('0x4Ddc2D193948926D02f9B1fE9e1daa0718270ED5');
+ *   const acc = await Strike.strk.getStrikeAccrued('0x4Ddc2D193948926D02f9B1fE9e1daa0718270ED5');
  *   console.log('Accrued', acc);
  * })().catch(console.error);
  * ```
@@ -138,11 +138,11 @@ export async function getStrikeAccrued(
   }
 
   const lensAddress = address[net.name].StrikeLens;
-  const compAddress = address[net.name].STRK;
+  const strkAddress = address[net.name].STRK;
   const comptrollerAddress = address[net.name].Comptroller;
-  const parameters = [ compAddress, comptrollerAddress, _address ];
+  const parameters = [ strkAddress, comptrollerAddress, _address ];
   const trxOptions: CallOptions = {
-    _compoundProvider: provider,
+    _strikeProvider: provider,
     abi: abi.StrikeLens,
   };
 
@@ -151,7 +151,7 @@ export async function getStrikeAccrued(
 }
 
 /**
- * Create a transaction to claim accrued STRIKE tokens for the user.
+ * Create a transaction to claim accrued STRK tokens for the user.
  *
  * @param {CallOptions} [options] Options to set for a transaction and Ethers.js
  *     method overrides.
@@ -166,7 +166,7 @@ export async function getStrikeAccrued(
  * 
  * (async function() {
  * 
- *   console.log('Claiming Strike...');
+ *   console.log('Claiming STRK...');
  *   const trx = await strike.claimStrike();
  *   console.log('Ethers.js transaction object', trx);
  * 
@@ -180,6 +180,7 @@ export async function claimStrike(
 
   try {
     let userAddress = this._provider.address;
+
     if (!userAddress && this._provider.getAddress) {
       userAddress = await this._provider.getAddress();
     }
@@ -187,7 +188,7 @@ export async function claimStrike(
     const comptrollerAddress = address[this._network.name].Comptroller;
     const trxOptions: CallOptions = {
       ...options,
-      _compoundProvider: this._provider,
+      _strikeProvider: this._provider,
       abi: abi.Comptroller,
     };
     const parameters = [ userAddress ];
@@ -243,16 +244,16 @@ export async function delegate(
     throw Error(errorPrefix + 'Argument `_address` must be a valid Ethereum address.');
   }
 
-  const compAddress = address[this._network.name].STRK;
+  const strkAddress = address[this._network.name].STRK;
   const trxOptions: CallOptions = {
     ...options,
-    _compoundProvider: this._provider,
+    _strikeProvider: this._provider,
     abi: abi.STRK,
   };
   const parameters = [ _address ];
-  const method = 'delegate(address)';
+  const method = 'delegate';
 
-  return eth.trx(compAddress, method, parameters, trxOptions);
+  return eth.trx(strkAddress, method, parameters, trxOptions);
 }
 
 /**
@@ -260,7 +261,7 @@ export async function delegate(
  *
  * @param {string} _address The address to delegate the user's voting rights to.
  * @param {number} nonce The contract state required to match the signature.
- *     This can be retrieved from the STRIKE contract's public nonces mapping.
+ *     This can be retrieved from the COMP contract's public nonces mapping.
  * @param {number} expiry The time at which to expire the signature. A block 
  *     timestamp as seconds since the unix epoch.
  * @param {object} signature An object that contains the v, r, and, s values of
@@ -332,17 +333,17 @@ export async function delegateBySig(
       'contains the v, r, and s pieces of an EIP-712 signature.');
   }
 
-  const compAddress = address[this._network.name].STRK;
+  const strkAddress = address[this._network.name].STRK;
   const trxOptions: CallOptions = {
     ...options,
-    _compoundProvider: this._provider,
+    _strikeProvider: this._provider,
     abi: abi.STRK,
   };
   const { v, r, s } = signature;
   const parameters = [ _address, nonce, expiry, v, r, s ];
   const method = 'delegateBySig';
 
-  return eth.trx(compAddress, method, parameters, trxOptions);
+  return eth.trx(strkAddress, method, parameters, trxOptions);
 }
 
 /**
@@ -378,7 +379,7 @@ export async function createDelegateSignature(
   await netId(this);
 
   const provider = this._provider;
-  const compAddress = address[this._network.name].STRK;
+  const strkAddress = address[this._network.name].STRK;
   const chainId = this._network.id;
   let userAddress = this._provider.address;
 
@@ -389,16 +390,16 @@ export async function createDelegateSignature(
   const originalProvider = this._originalProvider;
 
   const nonce = +(await eth.read(
-    compAddress,
+    strkAddress,
     'function nonces(address) returns (uint)',
     [ userAddress ],
     { provider: originalProvider }
   )).toString();
 
   const domain: EIP712Domain = {
-    name: 'Compound',
+    name: 'Strike',
     chainId,
-    verifyingContract: compAddress
+    verifyingContract: strkAddress
   };
 
   const primaryType = 'Delegation';

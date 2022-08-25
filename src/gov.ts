@@ -20,9 +20,10 @@ import {
  * Submit a vote on a Strike Governance proposal.
  *
  * @param {string} proposalId The ID of the proposal to vote on. This is an
- *     auto-incrementing integer in the Governor Alpha contract.
- * @param {boolean} support A boolean of true for 'yes' or false for 'no' on the
- *     proposal vote.
+ *     auto-incrementing integer in the Governor contract.
+ * @param {number} support A number value of 0, 1, or 2 for the proposal vote.
+ *     The numbers correspond to 'in-favor', 'against', and 'abstain'
+ *     respectively.
  * @param {CallOptions} [options] Options to set for a transaction and Ethers.js
  *     method overrides.
  *
@@ -35,14 +36,14 @@ import {
  * const strike = new Strike(window.ethereum);
  * 
  * (async function() {
- *   const castVoteTx = await strike.castVote(12, true);
+ *   const castVoteTx = await strike.castVote(12, 1);
  *   console.log('Ethers.js transaction object', castVoteTx);
  * })().catch(console.error);
  * ```
  */
 export async function castVote(
   proposalId: number,
-  support: boolean,
+  support: number,
   options: CallOptions = {}
 ) : Promise<TrxResponse> {
   await netId(this);
@@ -53,13 +54,13 @@ export async function castVote(
     throw Error(errorPrefix + 'Argument `proposalId` must be an integer.');
   }
 
-  if (typeof support !== 'boolean') {
-    throw Error(errorPrefix + 'Argument `support` must be a boolean.');
+  if (typeof support !== 'number') {
+    throw Error(errorPrefix + 'Argument `support` must be an integer (0, 1, or 2).');
   }
 
   const governorAddress = address[this._network.name].GovernorAlpha;
   const trxOptions: CallOptions = options;
-  trxOptions._compoundProvider =  this._provider;
+  trxOptions._strikeProvider =  this._provider;
   trxOptions.abi =  abi.GovernorAlpha;
   const parameters = [ proposalId, support ];
   const method = 'castVote';
@@ -71,9 +72,10 @@ export async function castVote(
  * Submit a vote on a Strike Governance proposal using an EIP-712 signature.
  *
  * @param {string} proposalId The ID of the proposal to vote on. This is an
- *     auto-incrementing integer in the Governor Alpha contract.
- * @param {boolean} support A boolean of true for 'yes' or false for 'no' on the
- *     proposal vote.
+ *     auto-incrementing integer in the Governor contract.
+ * @param {number} support A number value of 0, 1, or 2 for the proposal vote.
+ *     The numbers correspond to 'in-favor', 'against', and 'abstain'
+ *     respectively.
  * @param {object} signature An object that contains the v, r, and, s values of
  *     an EIP-712 signature.
  * @param {CallOptions} [options] Options to set for a transaction and Ethers.js
@@ -89,7 +91,7 @@ export async function castVote(
  * (async function() {
  *   const castVoteTx = await strike.castVoteBySig(
  *     12,
- *     true,
+ *     1,
  *     {
  *       v: '0x1b',
  *       r: '0x130dbcd2faca07424c033b4479687cc1deeb65f08509e3ab397988cc4c6f2e78',
@@ -102,7 +104,7 @@ export async function castVote(
  */
 export async function castVoteBySig(
   proposalId: number,
-  support: boolean,
+  support: number,
   signature: Signature,
   options: CallOptions = {}
 ) : Promise<TrxResponse> {
@@ -114,8 +116,8 @@ export async function castVoteBySig(
     throw Error(errorPrefix + 'Argument `proposalId` must be an integer.');
   }
 
-  if (typeof support !== 'boolean') {
-    throw Error(errorPrefix + 'Argument `support` must be a boolean.');
+  if (typeof support !== 'number') {
+    throw Error(errorPrefix + 'Argument `support` must be an integer (0, 1, or 2).');
   }
 
   if (
@@ -130,7 +132,7 @@ export async function castVoteBySig(
 
   const governorAddress = address[this._network.name].GovernorAlpha;
   const trxOptions: CallOptions = options;
-  trxOptions._compoundProvider = this._provider;
+  trxOptions._strikeProvider = this._provider;
   trxOptions.abi = abi.GovernorAlpha;
   const { v, r, s } = signature;
   const parameters = [ proposalId, support, v, r, s ];
@@ -146,10 +148,11 @@ export async function castVoteBySig(
  *     The recipient can post one signature using the `castVoteBySig` method.
  *
  * @param {string} proposalId The ID of the proposal to vote on. This is an
- *     auto-incrementing integer in the Governor Alpha contract.
- * @param {boolean} support A boolean of true for 'yes' or false for 'no' on the
- *     proposal vote. To create an 'empty ballot' call this method twice using
- *     `true` and then `false` for this parameter.
+ *     auto-incrementing integer in the Governor contract.
+ * @param {number} support A number value of 0, 1, or 2 for the proposal vote.
+ *     The numbers correspond to 'in-favor', 'against', and 'abstain'
+ *     respectively. To create an 'empty ballot' call this method thrice using
+ *     `0`, `1`, and then `2` for this parameter.
  *
  * @returns {object} Returns an object that contains the `v`, `r`, and `s` 
  *     components of an Ethereum signature as hexadecimal strings.
@@ -160,10 +163,10 @@ export async function castVoteBySig(
  *
  * (async () => {
  *
- *   const voteForSignature = await strike.createVoteSignature(20, true);
+ *   const voteForSignature = await strike.createVoteSignature(20, 1);
  *   console.log('voteForSignature', voteForSignature);
  *
- *   const voteAgainstSignature = await strike.createVoteSignature(20, false);
+ *   const voteAgainstSignature = await strike.createVoteSignature(20, 0);
  *   console.log('voteAgainstSignature', voteAgainstSignature);
  *
  * })().catch(console.error);
@@ -171,7 +174,7 @@ export async function castVoteBySig(
  */
 export async function createVoteSignature(
   proposalId: number,
-  support: boolean
+  support: number
 ) : Promise<Signature> {
   await netId(this);
 
@@ -180,7 +183,7 @@ export async function createVoteSignature(
   const chainId = this._network.id;
 
   const domain: EIP712Domain = {
-    name: 'Strike Governor Alpha',
+    name: 'Strike Governor Bravo',
     chainId,
     verifyingContract: governorAddress
   };
@@ -197,7 +200,7 @@ export async function createVoteSignature(
     ],
     Ballot: [
       { name: 'proposalId', type: 'uint256' },
-      { name: 'support', type: 'bool' }
+      { name: 'support', type: 'uint8' }
     ]
   };
 
@@ -206,4 +209,62 @@ export async function createVoteSignature(
   const signature = await sign(domain, primaryType, message, types, signer);
 
   return signature;
+}
+
+/**
+ * Submit a Strike Governance proposal vote with a reason.
+ *
+ * @param {string} proposalId The ID of the proposal to vote on. This is an
+ *     auto-incrementing integer in the Governor contract.
+ * @param {number} support A number value of 0, 1, or 2 for the proposal vote.
+ *     The numbers correspond to 'in-favor', 'against', and 'abstain'
+ *     respectively.
+ * @param {string} reason A string of the reason for a vote selection.
+ * @param {CallOptions} [options] Options to set for a transaction and Ethers.js
+ *     method overrides.
+ *
+ * @returns {object} Returns an Ethers.js transaction object of the vote
+ *     transaction.
+ *
+ * @example
+ *
+ * ```
+ * const strike = new Strike(window.ethereum);
+ * 
+ * (async function() {
+ *   const castVoteTx = await strike.castVoteWithReason(12, 1, 'I vote YES because...');
+ *   console.log('Ethers.js transaction object', castVoteTx);
+ * })().catch(console.error);
+ * ```
+ */
+export async function castVoteWithReason(
+  proposalId: number,
+  support: number,
+  reason: string,
+  options: CallOptions = {}
+) : Promise<TrxResponse> {
+  await netId(this);
+
+  const errorPrefix = 'Strike [castVoteWithReason] | ';
+
+  if (typeof proposalId !== 'number') {
+    throw Error(errorPrefix + 'Argument `proposalId` must be an integer.');
+  }
+
+  if (typeof support !== 'number') {
+    throw Error(errorPrefix + 'Argument `support` must be an integer (0, 1, or 2).');
+  }
+
+  if (typeof reason !== 'string') {
+    throw Error(errorPrefix + 'Argument `reason` must be a string.');
+  }
+
+  const governorAddress = address[this._network.name].GovernorAlpha;
+  const trxOptions: CallOptions = options;
+  trxOptions._strikeProvider =  this._provider;
+  trxOptions.abi =  abi.GovernorAlpha;
+  const parameters = [ proposalId, support, reason ];
+  const method = 'castVoteWithReason';
+
+  return eth.trx(governorAddress, method, parameters, trxOptions);
 }

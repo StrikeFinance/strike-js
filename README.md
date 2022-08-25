@@ -99,10 +99,7 @@ import Strike from '@strike-finance/strike-js';
 
 ## More Code Examples
 
-- [Node.js](https://github.com/StrikeFinance/strike-js/tree/master/examples)
-- [Web Browser](https://github.com/StrikeFinance/strike-js/examples/web/)
-
-[To run, boot Ganache fork of mainnet locally](https://github.com/StrikeFinance/strike-js/tree/master/examples)
+See the docblock comments above each function definition or the official [Strike.js Documentation](https://docs.strike.org/strike.js).
 
 ## Instance Creation
 
@@ -118,7 +115,7 @@ var strike = new Strike(); // Uses Ethers.js fallback mainnet (for testing only)
 var strike = new Strike('ropsten'); // Uses Ethers.js fallback (for testing only)
 
 // Init with private key (server side)
-var strike = new Strike('http://127.0.0.1:8545', {
+var strike = new Strike('https://mainnet.infura.io/v3/_your_project_id_', {
   privateKey: '0x_your_private_key_', // preferably with environment variable
 });
 
@@ -133,8 +130,8 @@ var strike = new Strike('mainnet' {
 Names of contracts, their addresses, ABIs, token decimals, and more can be found in `/src/constants.ts`. Addresses, for all networks, can be easily fetched using the `getAddress` function, combined with contract name constants.
 
 ```js
-console.log(Strike.BUSD, Strike.ETH, Strike.sSTRK);
-// BUSD, ETH, sSTRK
+console.log(Strike.BUSD, Strike.ETH, Strike.sETH);
+// BUSD, ETH, sETH
 
 const sUsdtAddress = Strike.util.getAddress(Strike.sUSDT);
 // Mainnet sUSDT address. Second parameter can be a network like 'ropsten'.
@@ -145,7 +142,7 @@ const sUsdtAddress = Strike.util.getAddress(Strike.sUSDT);
 Parameters of number values can be plain numbers or their scaled up mantissa values. There is a transaction option boolean to tell the SDK what the developer is passing.
 
 ```js
-// 1 BUSD
+// 1 Busd
 await strike.borrow(Strike.BUSD, '1000000000000000000', { mantissa: true });
 
 // `mantissa` defaults to false if it is not specified or if an options object is not passed
@@ -176,14 +173,14 @@ const trxOptions = {
 
 ## API
 
-The [Strike API](https://docs.strike.io/docs/api) is accessible from Strike.js. The corresponding services are defined in the `api` namespace on the class.
+The [Strike API](https://docs.strike.org/api) is accessible from Strike.js. The corresponding services are defined in the `api` namespace on the class.
 
 - `Strike.api.account`
 - `Strike.api.sToken`
 - `Strike.api.marketHistory`
 - `Strike.api.governance`
 
-The governance method requires a second parameter (string) for the corresponding endpoint shown in the [documentation](https://docs.strike.io/docs/api#GovernanceService).
+The governance method requires a second parameter (string) for the corresponding endpoint shown in the [documentation](https://docs.strike.org/governance).
 
 - `proposals`
 - `voteReceipts`
@@ -198,21 +195,33 @@ const main = async () => {
     "network": "ropsten"
   });
 
-  let strkBorrowBalance = 0;
+  let busdBorrowBalance = 0;
   if (Object.isExtensible(account) && account.accounts) {
     account.accounts.forEach((acc) => {
       acc.tokens.forEach((tok) => {
-        if (tok.symbol === Strike.sSTRK) {
-          strkBorrowBalance = +tok.borrow_balance_underlying.value;
+        if (tok.symbol === Strike.sBUSD) {
+          busdBorrowBalance = +tok.borrow_balance_underlying.value;
         }
       });
     });
   }
 
-  console.log('strkBorrowBalance', strkBorrowBalance);
+  console.log('busdBorrowBalance', busdBorrowBalance);
 }
 
 main().catch(console.error);
+```
+
+## Test
+
+Tests are available in `./test/*.test.js`. The tests are configured in `./test/index.js`. Methods are tested using a forked chain using ganache-core. A JSON RPC provider URL needs to be configured as an environment variable before running the tests (`MAINNET_PROVIDER_URL`). Archive state must be available to run the tests. For free archive node access, get a provider URL from [Alchemy](http://alchemy.com/).
+
+```
+## Run all tests
+npm test
+
+## Run a single test (Mocha JS grep option)
+npm test -- -g 'runs eth.getBalance'
 ```
 
 ## Build for Node.js & Web Browser

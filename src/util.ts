@@ -193,7 +193,7 @@ export function getAddress(contract: string, network='mainnet') : string {
  *
  * @example
  * ```
- * console.log('sETH ABI: ', Strike.util.getAbi(Strike.sETH));
+ * console.log('sETH ABI: ', Strike.util.getAbi('sEther'));
  * ```
  */
 export function getAbi(contract: string): AbiType[] {
@@ -209,7 +209,7 @@ export function getAbi(contract: string): AbiType[] {
  *
  * @example
  * ```
- * console.log('mainnet : ', Strike.util.getNetNameWithChainId(1));
+ * console.log('Ropsten : ', Strike.util.getNetNameWithChainId(3));
  * ```
  */
 export function getNetNameWithChainId(chainId: number) : string {

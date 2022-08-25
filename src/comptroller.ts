@@ -6,7 +6,7 @@
 
 import * as eth from './eth';
 import { netId } from './helpers';
-import { address, abi, cTokens } from './constants';
+import { address, abi, sTokens } from './constants';
 import { CallOptions, TrxResponse } from './types';
 
 /**
@@ -27,7 +27,7 @@ import { CallOptions, TrxResponse } from './types';
  * const strike = new Strike(window.ethereum);
  * 
  * (async function () {
- *   const trx = await strike.enterMarkets(Strike.STRK); // Use [] for multiple
+ *   const trx = await strike.enterMarkets(Strike.ETH); // Use [] for multiple
  *   console.log('Ethers.js transaction object', trx);
  * })().catch(console.error);
  * ```
@@ -53,17 +53,18 @@ export async function enterMarkets(
       markets[i] = 's' + markets[i];
     }
 
-    if (!cTokens.includes(markets[i])) {
+    if (!sTokens.includes(markets[i])) {
       throw Error(errorPrefix + 'Provided market `' + markets[i] + '` is not a recognized sToken.');
     }
 
     addresses.push(address[this._network.name][markets[i]]);
   }
+
   const comptrollerAddress = address[this._network.name].Comptroller;
   const parameters = [ addresses ];
 
   const trxOptions: CallOptions = {
-    _compoundProvider: this._provider,
+    _strikeProvider: this._provider,
     abi: abi.Comptroller,
     ...options
   };
@@ -88,7 +89,7 @@ export async function enterMarkets(
  * const strike = new Strike(window.ethereum);
  * 
  * (async function () {
- *   const trx = await strike.exitMarket(Strike.STRK);
+ *   const trx = await strike.exitMarket(Strike.ETH);
  *   console.log('Ethers.js transaction object', trx);
  * })().catch(console.error);
  * ```
@@ -98,18 +99,18 @@ export async function exitMarket(
   options: CallOptions = {}
 ) : Promise<TrxResponse> {
   await netId(this);
-  const errorPrefix = 'Strike [exitMarkets] | ';
+  const errorPrefix = 'Strike [exitMarket] | ';
 
   if (typeof market !== 'string' || market === '') {
-    throw Error(errorPrefix + 'Argument `market` must be a string of a cToken market name.');
+    throw Error(errorPrefix + 'Argument `market` must be a string of a sToken market name.');
   }
 
   if (market[0] !== 's') {
     market = 's' + market;
   }
 
-  if (!cTokens.includes(market)) {
-    throw Error(errorPrefix + 'Provided market `' + market + '` is not a recognized cToken.');
+  if (!sTokens.includes(market)) {
+    throw Error(errorPrefix + 'Provided market `' + market + '` is not a recognized sToken.');
   }
 
   const sTokenAddress = address[this._network.name][market];
@@ -118,7 +119,7 @@ export async function exitMarket(
   const parameters = [ sTokenAddress ];
 
   const trxOptions: CallOptions = {
-    _compoundProvider: this._provider,
+    _strikeProvider: this._provider,
     abi: abi.Comptroller,
     ...options
   };

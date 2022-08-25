@@ -42,7 +42,7 @@ function _ethJsonRpc(
 ): Promise<any> {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   return new Promise<any>((resolve, reject) => {
-    const provider = options._compoundProvider || _createProvider(options);
+    const provider = options._strikeProvider || _createProvider(options);
 
     const overrides = {
       gasPrice: options.gasPrice,
@@ -51,6 +51,7 @@ function _ethJsonRpc(
       chainId: options.chainId,
       from: options.from,
       gasLimit: options.gasLimit,
+      blockTag: options.blockTag,
     };
 
     parameters.push(overrides);
@@ -64,7 +65,7 @@ function _ethJsonRpc(
       contract = new ethers.Contract(address, abi, provider);
     } else {
       // Assumes `method` is a string of the member definition
-      abi = [method];
+      abi = [ method ];
       contract = new ethers.Contract(address, abi, provider);
       method = Object.keys(contract.functions)[1];
     }
@@ -73,8 +74,8 @@ function _ethJsonRpc(
       contract[method].apply(null, parameters).then((result) => {
         resolve(result);
       }).catch((error) => {
-        try { delete parameters[parameters.length - 1].privateKey } catch (e) { }
-        try { delete parameters[parameters.length - 1].mnemonic } catch (e) { }
+        try { delete parameters[parameters.length-1].privateKey } catch(e) {}
+        try { delete parameters[parameters.length-1].mnemonic   } catch(e) {}
         reject({
           message: 'Error occurred during [eth_sendTransaction]. See {error}.',
           error,
@@ -86,8 +87,8 @@ function _ethJsonRpc(
       contract.callStatic[method].apply(null, parameters).then((result) => {
         resolve(result);
       }).catch((error) => {
-        try { delete parameters[parameters.length - 1].privateKey } catch (e) { }
-        try { delete parameters[parameters.length - 1].mnemonic } catch (e) { }
+        try { delete parameters[parameters.length-1].privateKey } catch(e) {}
+        try { delete parameters[parameters.length-1].mnemonic   } catch(e) {}
         reject({
           message: 'Error occurred during [eth_call]. See {error}.',
           error,
@@ -142,7 +143,7 @@ export function read(
   parameters: any[] = [],
   options: CallOptions = {}
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-): Promise<any> {
+) : Promise<any> {
   return _ethJsonRpc(JsonRpc.EthCall, address, method, parameters, options);
 }
 
@@ -165,7 +166,7 @@ export function read(
  * @example
  * ```
  * const oneEthInWei = '1000000000000000000';
- * const sEthAddress = '0x4ddc2d193948926d02f9b1fe9e1daa0718270ed5';
+ * const sEthAddress = '0xbEe9Cf658702527b0AcB2719c1FAA29EdC006a92';
  * const provider = window.ethereum;
  * 
  * (async function() {
@@ -195,7 +196,7 @@ export function trx(
   parameters: any[] = [],
   options: CallOptions = {}
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-): Promise<any> {
+) : Promise<any> {
   return _ethJsonRpc(JsonRpc.EthSendTransaction, address, method, parameters, options);
 }
 
@@ -261,7 +262,7 @@ export async function getProviderNetwork(
 export async function getBalance(
   address: string,
   provider: Provider | string
-): Promise<string> {
+) : Promise<string> {
   let _provider;
   if (typeof provider === 'object' && provider._isSigner) {
     _provider = provider.provider;
@@ -280,7 +281,7 @@ export async function getBalance(
   }
 
   const balance = await providerInstance.send(
-    'eth_getBalance', [address, 'latest']
+    'eth_getBalance', [ address, 'latest' ]
   );
   return balance;
 }
@@ -295,15 +296,22 @@ export async function getBalance(
  *
  * @returns {object} Returns a valid Ethereum network provider object.
  */
-export function _createProvider(options: CallOptions = {}): Provider {
+export function _createProvider(options: CallOptions = {}) : Provider {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   let provider: any = options.provider || (options.network || 'mainnet');
   const isADefaultProvider = !!ethers.providers.getNetwork(provider.toString());
 
-  // Create an ethers provider, web3's can sign
+  const isObject = typeof provider === 'object';
+
+  // User passed an ethers.js provider/signer/wallet object
+  if (isObject && (provider._isSigner || provider._isProvider)) {
+    return provider;
+  }
+
+  // Create an ethers provider, web3s can sign
   if (isADefaultProvider) {
     provider = ethers.getDefaultProvider(provider);
-  } else if (typeof provider === 'object') {
+  } else if (isObject) {
     provider = new ethers.providers.Web3Provider(provider).getSigner();
   } else {
     provider = new ethers.providers.JsonRpcProvider(provider);

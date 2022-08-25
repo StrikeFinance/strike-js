@@ -7,10 +7,10 @@
 import * as eth from './eth';
 import { netId } from './helpers';
 import {
-  constants, address, abi, cTokens, underlyings, decimals, opfAssets
+  constants, address, abi, sTokens, underlyings, decimals, opfAssets
 } from './constants';
-import { BigNumber } from '@ethersproject/bignumber/lib/bignumber';
 import { CallOptions } from './types';
+import { BigNumber } from '@ethersproject/bignumber/lib/bignumber';
 
 function validateAsset(
   asset: string,
@@ -30,7 +30,7 @@ function validateAsset(
   const underlyingAddress = address[this._network.name][underlyingName];
 
   if (
-    (!cTokens.includes(sTokenName) || !underlyings.includes(underlyingName)) &&
+    (!sTokens.includes(sTokenName) || !underlyings.includes(underlyingName)) &&
     !opfAssets.includes(underlyingName)
   ) {
     throw Error(errorPrefix + 'Argument `' + argument + '` is not supported.');
@@ -52,8 +52,8 @@ async function sTokenExchangeRate(
   const address = sTokenAddress;
   const method = 'exchangeRateCurrent';
   const options = {
-    _compoundProvider: this._provider,
-    abi: sTokenName === constants.sETH ? abi.sETH : abi.sErc20,
+    _strikeProvider: this._provider,
+    abi: sTokenName === constants.sETH ? abi.sEther : abi.sErc20,
   };
   const exchangeRateCurrent = await eth.read(address, method, [], options);
   const mantissa = 18 + underlyingDecimals - 8; // sToken always 8 decimals
@@ -81,16 +81,16 @@ async function sTokenExchangeRate(
  * 
  * (async function () {
  * 
- *   price = await strike.getPrice(Strike.ETH);
- *   console.log('ETH in USD', price);
+ *   price = await strike.getPrice(Strike.WBTC);
+ *   console.log('WBTC in USD', price); // 6 decimals, see Open Price Feed docs
  * 
- *   price = await strike.getPrice(Strike.STRK, Strike.USDC); // supports sTokens too
- *   console.log('STRK in USDC', price);
+ *   price = await strike.getPrice(Strike.ETH, Strike.USDC); // supports sTokens too
+ *   console.log('ETH in USDC', price);
  * 
  * })().catch(console.error);
  * ```
  */
-export async function getPrice(
+ export async function getPrice(
   asset: string,
   inAsset: string = constants.USDC
 ) : Promise<number> {
@@ -111,7 +111,7 @@ export async function getPrice(
   const comptrollerAddress = address[this._network.name].Comptroller;
 
   const oracleTrxOptions: CallOptions = {
-    _compoundProvider: this._provider,
+    _strikeProvider: this._provider,
     abi: abi.Comptroller,
   };
   const priceOracleAddress = await eth.read(comptrollerAddress, 'oracle', [], oracleTrxOptions);
@@ -125,7 +125,7 @@ export async function getPrice(
   // const inAssetUnderlyingPrice =  await eth.read(priceFeedAddress, 'price', [ inAssetUnderlyingName ], trxOptions);
 
   const trxOptions: CallOptions = {
-    _compoundProvider: this._provider,
+    _strikeProvider: this._provider,
     abi: abi.PriceOracle,
   };
   let assetUnderlyingPrice = await eth.read(priceOracleAddress, 'getUnderlyingPrice', [ sTokenAddress ], trxOptions);

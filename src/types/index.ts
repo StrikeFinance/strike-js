@@ -12,11 +12,11 @@ import { BigNumber } from '@ethersproject/bignumber/lib/bignumber';
 
 // =-=-=-=-=-= /src/index.ts =-=-=-=-=-=
 
-export interface CompoundInstance {
+export interface StrikeInstance {
   _networkPromise: Promise<ProviderNetwork>;
 }
 
-export interface CompoundOptions {
+export interface StrikeOptions {
   privateKey?: string;
   mnemonic?: string;
   provider?: Provider | string;
@@ -43,7 +43,7 @@ export interface AbiItem {
 }
 
 export interface CallOptions {
-  _compoundProvider?: Provider;
+  _strikeProvider?: Provider;
   abi?: string | string[] | AbiItem[];
   provider?: Provider | string;
   network?: string;
@@ -57,6 +57,7 @@ export interface CallOptions {
   privateKey?: string;
   mnemonic?: string;
   mantissa?: boolean;
+  blockTag?: number | string;
   // blockNumber?: string;
   // id?: number;
 }
@@ -142,8 +143,8 @@ export interface AccountServiceRequest {
   max_health?: precise;
   block_number?: number;
   block_timestamp?: number;
-  limit?: number;
-  offset?: number;
+  page_size?: number;
+  page_number?: number;
   network?: string;
 }
 
@@ -168,8 +169,8 @@ export interface GovernanceServiceRequest {
   proposal_ids?: number[];
   state?: string;
   with_detail?: boolean;
-  limit?: number;
-  offset?: number;
+  page_size?: number;
+  page_number?: number;
   network?: string;
 }
 
@@ -216,7 +217,7 @@ export interface DelegateSignatureMessage {
 
 export interface VoteSignatureMessage {
   proposalId: number;
-  support: boolean;
+  support: number;
 }
 
 export type EIP712Message = DelegateSignatureMessage | VoteSignatureMessage;

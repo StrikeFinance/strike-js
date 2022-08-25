@@ -55,23 +55,22 @@ import {
  *     "network": "ropsten"
  *   });
  * 
- *   let strkBorrowBalance = 0;
+ *   let busdBorrowBalance = 0;
  *   if (Object.isExtensible(account) && account.accounts) {
  *     account.accounts.forEach((acc) => {
  *       acc.tokens.forEach((tok) => {
- *         if (tok.symbol === Strike.sSTRK) {
- *           strkBorrowBalance = +tok.borrow_balance_underlying.value;
+ *         if (tok.symbol === Strike.sBUSD) {
+ *           busdBorrowBalance = +tok.borrow_balance_underlying.value;
  *         }
  *       });
  *     });
  *   }
  * 
- *   console.log('strkBorrowBalance', strkBorrowBalance);
+ *   console.log('busdBorrowBalance', busdBorrowBalance);
  * })().catch(console.error);
  * ```
  */
-// TODO -- this will be updated when api is ready
-export function account(options: AccountServiceRequest): Promise<APIResponse> {
+export function account(options: AccountServiceRequest) : Promise<APIResponse> {
   return queryApi(options, 'account', '/api/v2/account');
 }
 
@@ -88,16 +87,16 @@ export function account(options: AccountServiceRequest): Promise<APIResponse> {
  *
  * ```
  * (async function() {
- *   const sStrkData = await Strike.api.sToken({
- *     "addresses": Strike.util.getAddress(Strike.sSTRK)
+ *   const sBusdData = await Strike.api.sToken({
+ *     "addresses": Strike.util.getAddress(Strike.sUSDT)
  *   });
  * 
- *   console.log('sStrkData', sStrkData); // JavaScript Object
+ *   console.log('sBusdData', sBusdData); // JavaScript Object
  * })().catch(console.error);
  * ```
  */
-export function sToken(options: STokenServiceRequest): Promise<APIResponse> {
-  return queryApi(options, 'sToken', '/api/stoken');
+export function sToken(options: STokenServiceRequest) : Promise<APIResponse> {
+  return queryApi(options, 'sToken', '/api/v2/stoken');
 }
 
 /**
@@ -124,14 +123,13 @@ export function sToken(options: STokenServiceRequest): Promise<APIResponse> {
  * })().catch(console.error);
  * ```
  */
-export function marketHistory(options: MarketHistoryServiceRequest): Promise<APIResponse> {
-  // return queryApi(options, 'Market History', '/api/v2/market_history/graph');
-  return queryApi(options, 'Market History', '/api/market_history/graph');
+export function marketHistory(options: MarketHistoryServiceRequest) : Promise<APIResponse> {
+  return queryApi(options, 'Market History', '/api/v2/market_history/graph');
 }
 
 /**
  * Makes a request to the GovernanceService API. The Governance Service includes
- *     three endpoints to retrieve information about COMP accounts. For more 
+ *     three endpoints to retrieve information about STRK accounts. For more 
  *     details, see the Strike API documentation.
  *
  * @param {object} options A JavaScript object of API request parameters.
@@ -153,32 +151,25 @@ export function marketHistory(options: MarketHistoryServiceRequest): Promise<API
  * })().catch(console.error);
  * ```
  */
-export function governance(options: GovernanceServiceRequest, endpoint: string): Promise<APIResponse> {
+export function governance(options: GovernanceServiceRequest, endpoint: string) : Promise<APIResponse> {
   if (endpoint === 'proposals') {
-    // endpoint = '/api/v2/governance/proposals';
-    endpoint = '/api/governance/proposals';
+    endpoint = '/api/v2/governance/proposals';
   } else if (endpoint === 'voteReceipts') {
-    // endpoint = '/api/v2/governance/proposal_vote_receipts';
-    endpoint = '/api/governance/proposal_vote_receipts';
+    endpoint = '/api/v2/governance/proposal_vote_receipts';
   } else {
-    // endpoint = '/api/v2/governance/accounts';
-    endpoint = '/api/governance/accounts';
+    endpoint = '/api/v2/governance/accounts';
   }
 
   return queryApi(options, 'GovernanceService', endpoint);
 }
 
-function queryApi(options: APIRequest, name: string, path: string): Promise<APIResponse> {
+function queryApi(options: APIRequest, name: string, path: string) : Promise<APIResponse> {
   return new Promise((resolve, reject) => {
     const errorPrefix = `Strike [api] [${name}] | `;
     let responseCode, responseMessage;
 
-    // TODO -- api service endpoint should be updated.
-    let hostname = 'https://mainnetapi.strike.org';
-    if (options && (options.network === 'ropsten')) hostname = 'https://testnetapi.strike.org';
-
     request({
-      hostname,
+      hostname: 'https://api.strike.finance',
       path,
       method: 'POST',
       headers: {

@@ -1,4 +1,4 @@
-import { CompoundInstance } from './types';
+import { StrikeInstance } from './types';
 
 /**
  * This function acts like a decorator for all methods that interact with the
@@ -9,11 +9,11 @@ import { CompoundInstance } from './types';
  *
  * @hidden
  *
- * @param {Strike} _compound The instance of the Strike.js SDK.
+ * @param {Strike} _strike The instance of the Strike.js SDK.
  *
  */
-export async function netId(_compound: CompoundInstance): Promise<void> {
-  if (_compound._networkPromise) {
-    await _compound._networkPromise;
+export async function netId(_strike: StrikeInstance): Promise<void> {
+  if (_strike._networkPromise) {
+    await _strike._networkPromise;
   }
 }
